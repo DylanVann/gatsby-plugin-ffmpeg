@@ -1,16 +1,12 @@
 const crypto = require(`crypto`)
 const _ = require(`lodash`)
-const Promise = require(`bluebird`)
+const fs = require(`fs-extra`)
 const ProgressBar = require(`progress`)
 const queue = require(`async/queue`)
 const path = require(`path`)
 const existsSync = require(`fs-exists-cached`).sync
+const ffmpeg = require('./ffmpeg')
 const { boundActionCreators } = require(`gatsby/dist/redux/actions`)
-
-const ffmpeg = require('fluent-ffmpeg')
-
-// Promisify ffmpeg for ffprobe
-Promise.promisifyAll(ffmpeg, { multiArgs: true })
 
 const bar = new ProgressBar(
   `Transcoding Videos [:bar] :current/:total :elapsed secs :percent`,
@@ -33,21 +29,25 @@ const reportError = (message, err, reporter) => {
 }
 
 function notMemoizedGetVideoDimensions(path) {
-  return ffmpeg.ffprobeAsync(path).then(metadata => {
-    // just pick the first stream
-
-    if (!metadata[0].streams) {
-      console.warn(path, 'has no video streams?')
-      return null
-    }
-
-    const stream = metadata[0].streams[0]
-
-    return {
-      width: stream.width,
-      height: stream.height,
-    }
-  })
+    return new Promise((resolve, reject) => {
+        ffmpeg
+            .clone()
+            .input(path)
+            .ffprobe((error, data) => {
+                const stream = data && data.streams && data.streams[0]
+                if (error) {
+                    return reject(error)
+                }
+                if (!stream) {
+                    console.warn(path, 'has no video streams?')
+                    return resolve(null)
+                }
+                return resolve({
+                    width: stream.width,
+                    height: stream.height,
+                })
+            })
+    })
 }
 
 const videoDimensionCache = new Map()
@@ -74,7 +74,7 @@ const processFile = async (file, jobs, cb, reporter) => {
 
   let pipeline
   try {
-    pipeline = ffmpeg(filePath)
+    pipeline = ffmpeg.clone().input(filePath)
   } catch (err) {
     reportError(`Failed to process video ${filePath}`, err, reporter)
     jobs.forEach(job => job.outsideReject(err))
@@ -100,10 +100,10 @@ const processFile = async (file, jobs, cb, reporter) => {
     let height
 
     if (aspectRatio < 1) {
-      width = options.maxWidth
+      width = Math.min(dimensions.width, options.maxWidth)
       height = Math.round(width / aspectRatio)
     } else {
-      height = options.maxHeight
+      height = Math.min(dimensions.height, options.maxHeight)
       width = Math.round(height * aspectRatio)
     }
 
@@ -218,10 +218,12 @@ async function queueVideoTranscode({ file, options = {}, reporter }) {
 
   const argsDigestShort = argsDigest.substr(argsDigest.length - 5)
 
-  const videoSrc = `/${file.name}-${
-    file.internal.contentDigest
-  }-${argsDigestShort}.${fileExtension}`
+  const name = file.name
+  const digest = file.internal.contentDigest
+  const digestShort = argsDigestShort
+  const videoSrc = `/${digest}/${digestShort}/${name}.${fileExtension}`
   const filePath = path.join(process.cwd(), `public`, `static`, videoSrc)
+  await fs.ensureDir(path.dirname(filePath))
 
   // Create function to call when the image is finished.
   let outsideResolve, outsideReject
@@ -256,10 +258,10 @@ async function queueVideoTranscode({ file, options = {}, reporter }) {
   let aspectRatio = dimensions.width / dimensions.height
 
   if (aspectRatio < 1) {
-    width = options.maxWidth
+    width = Math.min(dimensions.width, options.maxWidth)
     height = Math.round(width / aspectRatio)
   } else {
-    height = options.maxHeight
+    height = Math.min(dimensions.height, options.maxHeight)
     width = Math.round(height * aspectRatio)
   }
 
@@ -299,26 +301,12 @@ async function transcode({ file, options = {}, reporter }) {
 
   const originalName = file.base
 
-  let presentationMaxWidth = 999999
-  let presentationMaxHeight = 999999
-
-  options.pipelines.forEach(pipeline => {
-    if (pipeline.maxWidth < presentationMaxWidth) {
-      presentationMaxWidth = pipeline.maxWidth
-    }
-    if (pipeline.maxHeight < presentationMaxHeight) {
-      presentationMaxHeight = pipeline.maxHeight
-    }
-  })
-
   const aspectRatio = videos[0].aspectRatio
 
   return {
     aspectRatio,
     width: videos[0].width,
     height: videos[0].height,
-    presentationMaxWidth,
-    presentationMaxHeight,
     videos: videos,
     originalName: originalName,
   }
