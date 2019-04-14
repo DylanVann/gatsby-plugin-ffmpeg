@@ -7,8 +7,7 @@ const queue = require(`async/queue`)
 const path = require(`path`)
 const existsSync = require(`fs-exists-cached`).sync
 const { boundActionCreators } = require(`gatsby/dist/redux/actions`)
-
-const ffmpeg = require('fluent-ffmpeg')
+const ffmpeg = require('./ffmpeg')
 
 // Promisify ffmpeg for ffprobe
 Promise.promisifyAll(ffmpeg, { multiArgs: true })

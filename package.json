@@ -1,15 +1,35 @@
 {
   "name": "gatsby-plugin-ffmpeg",
-  "description": "Wrapper of the FFMPEG video manipulation library for Gatsby plugins",
   "version": "0.3.0",
-  "author": "Michael Orenstein <mike@whiteshadows.me>",
+  "description": "Wrapper of the FFMPEG video manipulation library for Gatsby plugins.",
+  "keywords": [
+    "gatsby",
+    "gatsby-plugin",
+    "image"
+  ],
+  "homepage": "https://github.com/Mike-Dax/gatsby-plugin-ffmpeg",
   "bugs": {
     "url": "https://github.com/Mike-Dax/gatsby-plugin-ffmpeg/issues"
+  },
+  "repository": "https://github.com/Mike-Dax/gatsby-plugin-ffmpeg",
+  "license": "MIT",
+  "author": "Michael Orenstein <mike@whiteshadows.me>",
+  "files": [
+    "index.js",
+    "lib"
+  ],
+  "scripts": {
+    "build": "babel src --out-dir lib",
+    "prepare": "cross-env NODE_ENV=production npm run build",
+    "prepublish": "npm run build",
+    "watch": "babel -w src --out-dir lib"
   },
   "dependencies": {
     "@babel/runtime": "^7.4.2",
     "async": "^2.6.2",
     "bluebird": "^3.5.0",
+    "ffmpeg-static": "^2.4.0",
+    "ffprobe-static": "^3.0.0",
     "fluent-ffmpeg": "^2.1.2",
     "fs-exists-cached": "^1.0.0",
     "gatsby": ">2.0.0",
@@ -21,20 +41,5 @@
     "@babel/core": "^7.2.3",
     "cross-env": "^5.1.4"
   },
-  "homepage": "https://github.com/Mike-Dax/gatsby-plugin-ffmpeg",
-  "keywords": [
-    "gatsby",
-    "gatsby-plugin",
-    "image"
-  ],
-  "license": "MIT",
-  "main": "lib/index.js",
-  "peerDependencies": {},
-  "repository": "https://github.com/Mike-Dax/gatsby-plugin-ffmpeg",
-  "scripts": {
-    "build": "babel src --out-dir lib",
-    "prepare": "cross-env NODE_ENV=production npm run build",
-    "watch": "babel -w src --out-dir lib",
-    "prepublish": "npm run build"
-  }
+  "peerDependencies": {}
 }
