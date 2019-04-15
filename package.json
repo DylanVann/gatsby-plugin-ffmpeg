@@ -1,6 +1,6 @@
 {
-  "name": "gatsby-plugin-ffmpeg",
-  "version": "0.3.0",
+  "name": "@dylanvann/gatsby-plugin-ffmpeg",
+  "version": "0.0.2",
   "description": "Wrapper of the FFMPEG video manipulation library for Gatsby plugins.",
   "keywords": [
     "gatsby",
@@ -20,8 +20,8 @@
   ],
   "scripts": {
     "build": "babel src --out-dir lib",
-    "prepare": "cross-env NODE_ENV=production npm run build",
-    "prepublish": "npm run build",
+    "prepare": "cross-env NODE_ENV=production yarn run build",
+    "prepublish": "yarn run build",
     "watch": "babel -w src --out-dir lib"
   },
   "dependencies": {
