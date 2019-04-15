@@ -1,6 +1,6 @@
 {
     "name": "@dylanvann/gatsby-plugin-ffmpeg",
-    "version": "0.0.7",
+    "version": "0.0.8",
     "description": "Wrapper of the FFMPEG video manipulation library for Gatsby plugins.",
     "keywords": [
         "gatsby",
@@ -25,6 +25,7 @@
         "ffprobe-static": "^3.0.0",
         "fluent-ffmpeg": "^2.1.2",
         "fs-exists-cached": "^1.0.0",
+        "fs-extra": "^7.0.1",
         "gatsby": ">2.0.0",
         "lodash": "^4.17.4",
         "progress": "^1.1.8"
