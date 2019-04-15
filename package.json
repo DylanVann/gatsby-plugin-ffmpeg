@@ -1,6 +1,6 @@
 {
     "name": "@dylanvann/gatsby-plugin-ffmpeg",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "description": "Wrapper of the FFMPEG video manipulation library for Gatsby plugins.",
     "keywords": [
         "gatsby",
