@@ -1,6 +1,6 @@
 {
     "name": "@dylanvann/gatsby-plugin-ffmpeg",
-    "version": "0.0.6",
+    "version": "0.0.7",
     "description": "Wrapper of the FFMPEG video manipulation library for Gatsby plugins.",
     "keywords": [
         "gatsby",
@@ -16,7 +16,7 @@
     "author": "Michael Orenstein <mike@whiteshadows.me>",
     "files": [
         "index.js",
-        "lib"
+        "src"
     ],
     "dependencies": {
         "async": "^2.6.2",

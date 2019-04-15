@@ -6,11 +6,8 @@ const ProgressBar = require(`progress`)
 const queue = require(`async/queue`)
 const path = require(`path`)
 const existsSync = require(`fs-exists-cached`).sync
-const { boundActionCreators } = require(`gatsby/dist/redux/actions`)
 const ffmpeg = require('./ffmpeg')
-
-// Promisify ffmpeg for ffprobe
-Promise.promisifyAll(ffmpeg, { multiArgs: true })
+const { boundActionCreators } = require(`gatsby/dist/redux/actions`)
 
 const bar = new ProgressBar(
   `Transcoding Videos [:bar] :current/:total :elapsed secs :percent`,
@@ -33,16 +30,12 @@ const reportError = (message, err, reporter) => {
 }
 
 function notMemoizedGetVideoDimensions(path) {
-  return ffmpeg.ffprobeAsync(path).then(metadata => {
-    // just pick the first stream
-
-    if (!metadata[0].streams) {
+  return ffmpeg.clone().input(path).ffprobe((error, data) => {
+    const stream =data && data.streams && data.streams[0]
+    if (!stream) {
       console.warn(path, 'has no video streams?')
       return null
     }
-
-    const stream = metadata[0].streams[0]
-
     return {
       width: stream.width,
       height: stream.height,
@@ -74,7 +67,7 @@ const processFile = async (file, jobs, cb, reporter) => {
 
   let pipeline
   try {
-    pipeline = ffmpeg(filePath)
+    pipeline = ffmpeg.clone().input(filePath)
   } catch (err) {
     reportError(`Failed to process video ${filePath}`, err, reporter)
     jobs.forEach(job => job.outsideReject(err))
@@ -100,10 +93,10 @@ const processFile = async (file, jobs, cb, reporter) => {
     let height
 
     if (aspectRatio < 1) {
-      width = options.maxWidth
+      width = Math.min(dimensions.width, options.maxWidth)
       height = Math.round(width / aspectRatio)
     } else {
-      height = options.maxHeight
+      height = Math.min(dimensions.height, options.maxHeight)
       width = Math.round(height * aspectRatio)
     }
 
@@ -256,10 +249,10 @@ async function queueVideoTranscode({ file, options = {}, reporter }) {
   let aspectRatio = dimensions.width / dimensions.height
 
   if (aspectRatio < 1) {
-    width = options.maxWidth
+    width = Math.min(dimensions.width, options.maxWidth)
     height = Math.round(width / aspectRatio)
   } else {
-    height = options.maxHeight
+    height = Math.min(dimensions.height, options.maxHeight)
     width = Math.round(height * aspectRatio)
   }
 
